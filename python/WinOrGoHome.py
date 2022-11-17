@@ -7,7 +7,6 @@ import pickle
 import numpy as np
 import py4j.java_gateway
 
-import waveFunc as wf
 
 class Agent:
     class Linear:
@@ -53,17 +52,6 @@ class WinOrGoHome(object):
 
         _origin_actions = "AIR AIR_A AIR_B AIR_D_DB_BA AIR_D_DB_BB AIR_D_DF_FA AIR_D_DF_FB AIR_DA AIR_DB AIR_F_D_DFA AIR_F_D_DFB AIR_FA AIR_FB AIR_GUARD AIR_GUARD_RECOV AIR_RECOV AIR_UA AIR_UB BACK_JUMP BACK_STEP CHANGE_DOWN CROUCH CROUCH_A CROUCH_B CROUCH_FA CROUCH_FB CROUCH_GUARD CROUCH_GUARD_RECOV CROUCH_RECOV DASH DOWN FOR_JUMP FORWARD_WALK JUMP LANDING NEUTRAL RISE STAND STAND_A STAND_B STAND_D_DB_BA STAND_D_DB_BB STAND_D_DF_FA STAND_D_DF_FB STAND_D_DF_FC STAND_F_D_DFA STAND_F_D_DFB STAND_FA STAND_FB STAND_GUARD STAND_GUARD_RECOV STAND_RECOV THROW_A THROW_B THROW_HIT THROW_SUFFER"
         self.origin_action_strs = _origin_actions.split(" ")
-
-        ##########################byTAO
-        self.nonDelay=None
-        self.audio_data=[]
-        self.myAction=[]
-        self.myX=[]
-        self.myY=[]
-        self.oppX=[]
-        self.oppY=[]
-        ##########################byTAO
-
 
     def close(self):
         pass
@@ -134,29 +122,16 @@ class WinOrGoHome(object):
         self.last_5_oppo_posX = collections.deque(maxlen=5)
         self.last_10_oppo_hp = collections.deque(maxlen=10)
 
-        ##########################byTAO
-        folderName=time.strftime("%Y%m%d%H%M", time.localtime())
-        mapped=zip(self.myAction,self.myX,self.myY,self.oppX,self.oppY)
-        for name in mapped:
-            filePath="./dataset/"+folderName+"/"+name[0]+","+str(name[1])+","+str(name[2])+","+str(name[3])+","+str(name[4])+".wav"
-        for i in self.audio_data:
-            wf.write_wave(filePath, i)
-
-        self.audio_data=[]
-        self.myAction=[]
-        self.myX=[]
-        self.myY=[]
-        self.oppX=[]
-        self.oppY=[]
-        ##########################byTAO
-
     def getScreenData(self, sd):
         pass
 
-    def getInformation(self, frameData, isControl,nonDelay):
+    def getAudioData(self, ad):
+        pass
+
+    def getInformation(self, frameData, isControl):
         self.frameData = frameData
         self.isControl = isControl
-
+        
         print(1)
         try:
             opp = self.frameData.getCharacter(not self.player)
@@ -164,28 +139,14 @@ class WinOrGoHome(object):
             print(2)
             if self.lastOppAction is not None and oppAction != self.lastOppAction:
                 self.oppActionCounter[oppAction] += 1
-            print(3)
             self.lastOppAction = oppAction
-            print(4) 
+            print(3)
         except:
             pass
-
+        print(4)
         self.cc.setFrameData(self.frameData, self.player)
         if frameData.getEmptyFlag():
             return
-
-    def getAudioData(self, audio_data):
-        # process audio
-        try:
-            byte_data = audio_data.getRawDataAsBytes()
-            np_array = np.frombuffer(byte_data, dtype=np.float32)
-            raw_audio = np_array.reshape((2, 1024))
-            raw_audio = raw_audio.T
-            raw_audio = raw_audio[:800, :]
-        except Exception as ex:
-            raw_audio = np.zeros((800, 2))
-
-        self.audio_data.append(raw_audio)
 
     def input(self):
         return self.inputKey
@@ -210,15 +171,11 @@ class WinOrGoHome(object):
 
         if self.just_inited:
             self.just_inited = False
-        ##########################byTAO
-        self.obs = self.get_obs(self.frameData, non_delay=False)
-        self.get_obs(self.nonDelay, non_delay=True)
-        ##########################byTAO
+        self.obs = self.get_obs()
 
         if self.charaname == 'ZEN' and self.oppoAIname != 'MctsAi':
             my = self.frameData.getCharacter(self.player)
             opp = self.frameData.getCharacter(not self.player)
-        
             if my.getHp() > 150:
                 action = self.model_air.infer(self.obs)
             else:
@@ -229,15 +186,9 @@ class WinOrGoHome(object):
         str_action = self.force_act(str_action)
         self.cc.commandCall(str_action)
 
-        ##########################byTAO
-        self.myAction.append(str_action)
-        ##########################byTAO
-
-    def get_obs(self, frame, non_delay=True):
-        ##########################byTAO
-        my = frame.getCharacter(self.player)
-        opp = frame.getCharacter(not self.player)
-        ##########################byTAO
+    def get_obs(self):
+        my = self.frameData.getCharacter(self.player)
+        opp = self.frameData.getCharacter(not self.player)
 
         myHp = my.getHp() / 400
         myEnergy = my.getEnergy() / 300
@@ -266,14 +217,6 @@ class WinOrGoHome(object):
         oppHits = opp.getHitCount() / 10
         oppState = opp.getAction().ordinal()
         oppRemainingFrame = opp.getRemainingFrame() / 70
-
-        ##########################byTAO
-        if non_delay:
-            self.myX.append(my.getCenterX())
-            self.myY.append(my.getCenterY())
-            self.oppX.append(opp.getCenterX())
-            self.oppY.append(opp.getCenterY())
-        ##########################byTAO
 
         diffHp = oppHp - myHp
         diffX = oppX - myX
@@ -429,6 +372,7 @@ class WinOrGoHome(object):
             str_action = "4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4"
         elif str_action == 'CROUCH_GUARD':
             str_action = "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+
         my = self.frameData.getCharacter(self.player)
         opp = self.frameData.getCharacter(not self.player)
         oppMotionData = self.gameData.getMotionData(not self.player)

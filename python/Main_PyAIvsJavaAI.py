@@ -1,9 +1,11 @@
 import sys
 from time import sleep
 from py4j.java_gateway import JavaGateway, GatewayParameters, CallbackServerParameters, get_field
-from WinOrGoHome import WinOrGoHome
+#from WinOrGoHome import WinOrGoHome
+from KickAIModify import KickAI
 from DisplayInfo import DisplayInfo
-# from HWJ_TEST import HWJ_TEST
+from macheteModify import Machete
+from WinOrGoHomeModify import WinOrGoHome
 
 def check_args(args):
 	for i in range(argc):
@@ -12,7 +14,7 @@ def check_args(args):
 			GAME_NUM = int(args[i+1])
 
 def start_game():
-	manager.registerAI("WinOrGoHome", WinOrGoHome(gateway))
+	manager.registerAI("WinOrGoHome", KickAI(gateway))
 	print("Start game")
 	game = manager.createGame("ZEN", "ZEN", "WinOrGoHome", "MctsAi", GAME_NUM)
 	manager.runGame(game)

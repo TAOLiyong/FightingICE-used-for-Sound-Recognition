@@ -1,8 +1,19 @@
 from py4j.java_gateway import get_field
+import numpy as np
 
 class Machete(object):
 	def __init__(self, gateway):
 		self.gateway = gateway
+
+		##########################byTAO
+		self.nonDelay=None
+		self.audio_data=[]
+		self.myAction=[]
+		self.myX=[]
+		self.myY=[]
+		self.oppX=[]
+		self.oppY=[]
+        ##########################byTAO
 		
 
 	def close(self):
@@ -12,16 +23,39 @@ class Machete(object):
 		# Load the frame data every time getInformation gets called
 		self.frameData = frameData
 		self.cc.setFrameData(self.frameData, self.player)
+		self.nonDelay=nonDelay
 		
         # please define this method when you use FightingICE version 3.20 or later
 
 	def getAudioData(self, audio_data):
-		pass
+		# process audio
+        ##########################byTAO
+		try:
+			byte_data = audio_data.getRawDataAsBytes()
+			np_array = np.frombuffer(byte_data, dtype=np.float32)
+			raw_audio = np_array.reshape((2, 1024))
+			raw_audio = raw_audio.T
+			raw_audio = raw_audio[:800, :]
+		except Exception as ex:
+			raw_audio = np.zeros((800, 2))
+		
+		self.audio_data.append(raw_audio)
 	
 	def roundEnd(self, x, y, z):
-		print(x)
-		print(y)
-		print(z)
+		#print("len of myAction:",len(self.myAction))
+		print("len of myX:",len(self.myX))
+		print("len of myY:",len(self.myY))
+		print("len of oppX:",len(self.oppX))
+		print("len of oppY:",len(self.oppY))
+		print("len of audio_data:",len(self.audio_data))
+
+		self.nonDelay=None
+		self.audio_data=[]
+		self.myAction=[]
+		self.myX=[]
+		self.myY=[]
+		self.oppX=[]
+		self.oppY=[]
 
         # please define this method when you use FightingICE version 4.00 or later
 	def getScreenData(self, sd):
@@ -73,6 +107,9 @@ class Machete(object):
 			# If there is a previous "command" still in execution, then keep doing it
 			self.inputKey = self.cc.getSkillKey()
 			return
+
+
+
 		# We empty the keys and cancel skill just in case
 		self.inputKey.empty()
 		self.cc.skillCancel()
@@ -115,6 +152,12 @@ class Machete(object):
 		else:
 			# Perform a kick in all other cases, introduces randomness
 			self.cc.commandCall("B")
+		my=self.nonDelay.getCharacter(self.player)
+		opp=self.nonDelay.getCharacter(not self.player)
+		self.myX.append(my.getCenterX())
+		self.myY.append(my.getCenterY())
+		self.oppX.append(opp.getCenterX())
+		self.oppY.append(opp.getCenterY())
 
 	class Java:
 		implements = ["aiinterface.AIInterface"]

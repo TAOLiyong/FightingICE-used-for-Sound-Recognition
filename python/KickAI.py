@@ -13,13 +13,16 @@ class KickAI(object):
         self.cc.setFrameData(self.frameData, self.player)
     # please define this method when you use FightingICE version 3.20 or later
     def roundEnd(self, x, y, z):
-    	print(x)
-    	print(y)
-    	print(z)
-    	
+        print(x)
+        print(y)
+        print(z)
+    
+    def getAudioData(self, ad):
+        pass
     # please define this method when you use FightingICE version 4.00 or later
+
     def getScreenData(self, sd):
-    	pass
+        pass
         
     def initialize(self, gameData, player):
         # Initializng the command center, the simulator and some other things

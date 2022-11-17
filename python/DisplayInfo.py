@@ -20,7 +20,8 @@ class DisplayInfo(object):
         self.gameData = gameData
                 
         return 0
-        
+    def getAudioData(self, ad):
+        pass
     # please define this method when you use FightingICE version 3.20 or later
     def roundEnd(self, x, y, z):
         print(x)

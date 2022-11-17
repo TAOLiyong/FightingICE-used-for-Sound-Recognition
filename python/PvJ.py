@@ -3,6 +3,7 @@ sys.path.append('../')
 from time import sleep
 from py4j.java_gateway import JavaGateway, GatewayParameters, CallbackServerParameters, get_field
 from WinOrGoHome import WinOrGoHome
+from KickAIModify import KickAI
 import logging
 logger = logging.getLogger(__name__)
 def check_args(args):
@@ -18,8 +19,8 @@ def start_game(Character):
         for i in range(100000):
             gateway = JavaGateway(gateway_parameters=GatewayParameters(port=4242), callback_server_parameters=CallbackServerParameters());
             manager = gateway.entry_point
-            ai_name = 'WinOrGoHome'
-            manager.registerAI(ai_name, WinOrGoHome(gateway))
+            ai_name = 'KickAI'
+            manager.registerAI(ai_name, KickAI(gateway))
             print("Start game")
             game = manager.createGame(Chara, Chara, ai_name, "MctsAi", GAME_NUM)
             manager.runGame(game)

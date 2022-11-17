@@ -47,10 +47,10 @@ def read_wave(file_name, start=0, end=0):
     file.close() # close file
     return binary2float(frames, length, sampwidth) # binary to float
  
-def write_wave(file_name, data, sampwidth=3, fs=48000):
+def write_wave(file_name, data, sampwidth=16, fs=48000):
     file = wave.open(file_name, "wb") # open file
     # setting parameters
-    file.setnchannels(1)
+    file.setnchannels(2)
     file.setsampwidth(sampwidth)
     file.setframerate(fs)
     frames = float2binary(data, sampwidth) # float to binary
