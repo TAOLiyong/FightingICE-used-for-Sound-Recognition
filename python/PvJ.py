@@ -16,17 +16,20 @@ def start_game(Character):
 
     for Chara in Character:
         # FFT GRU
-        for i in range(100000):
-            gateway = JavaGateway(gateway_parameters=GatewayParameters(port=4242), callback_server_parameters=CallbackServerParameters());
-            manager = gateway.entry_point
-            ai_name = 'KickAI'
-            manager.registerAI(ai_name, KickAI(gateway))
-            print("Start game")
-            game = manager.createGame(Chara, Chara, ai_name, "MctsAi", GAME_NUM)
-            manager.runGame(game)
-            print("After game")
-            sys.stdout.flush()
-            close_gateway(gateway)
+        for i in range(100):
+            try:
+                gateway = JavaGateway(gateway_parameters=GatewayParameters(port=4242), callback_server_parameters=CallbackServerParameters());
+                manager = gateway.entry_point
+                ai_name = 'KickAI'
+                manager.registerAI(ai_name, KickAI(gateway))
+                print("Start game")
+                game = manager.createGame(Chara, Chara, ai_name, "MctsAi", GAME_NUM)
+                manager.runGame(game)
+                print("After game")
+                sys.stdout.flush()
+                close_gateway(gateway)
+            except Exception as ex:
+                pass
 
 def close_gateway(g):
 	g.close_callback_server()

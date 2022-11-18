@@ -9,6 +9,7 @@ class KickAI(object):
         ##########################byTAO
         self.nonDelay=None
         self.ad=[]
+        self.currentAd=None
         self.audio_data=[] 
         self.myAction=[]
         self.myX=[]
@@ -17,6 +18,7 @@ class KickAI(object):
         self.oppY=[]
         self.allSound=[]
         self.frameCount=0
+        self.isRunning=False
         ##########################byTAO
         
     def close(self):
@@ -24,9 +26,13 @@ class KickAI(object):
         
     def getInformation(self, frameData, isControl,nonDelay):
         # Getting the frame data of the current frame
-        self.frameData = frameData
-        self.cc.setFrameData(self.frameData, self.player)
-        self.nonDelay=nonDelay
+        if self.isRunning:
+            pass
+        else:
+            self.frameData = frameData
+            self.cc.setFrameData(self.frameData, self.player)
+            self.nonDelay=nonDelay
+
     # please define this method when you use FightingICE version 3.20 or later
     def roundEnd(self, x, y, z):
         #print("len of myAction:",len(self.myAction))
@@ -34,7 +40,7 @@ class KickAI(object):
         print("len of myY:",len(self.myY))
         print("len of oppX:",len(self.oppX))
         print("len of oppY:",len(self.oppY))
-        print("len of audio_data:",len(self.audio_data))
+        print("len of audio_data:",len(self.audio_data), np.array(self.audio_data).shape)
         print("frameCount:",self.frameCount)
         
         if len(self.myX)==len(self.myY)==len(self.oppX)==len(self.oppY)==len(self.audio_data):
@@ -48,7 +54,7 @@ class KickAI(object):
             for name in mapped:
                 #wavePath=filePath+name[0]+","+str(name[1])+","+str(name[2])+","+str(name[3])+","+str(name[4])+".wav"
                 #wf.write_wave(wavePath, name[5])
-                wavePath=filePath+str(name[0])+","+str(name[1])+","+str(name[2])+","+str(name[3])+".txt"
+                wavePath=filePath+str(name[0])+","+str(name[1])+","+str(name[2])+","+str(name[3])+time.strftime('%H%M%S')+".txt"
                 #file=open(wavePath,'w')
                 #file.write(str(name[5]))
                 #file.close()
@@ -78,7 +84,9 @@ class KickAI(object):
         except Exception as ex:
             raw_audio = np.zeros((800, 2))
 		
-        self.ad.extend(raw_audio)
+        self.currentAd=raw_audio
+
+        #self.ad.extend(raw_audio)
         self.allSound.extend(raw_audio)
         self.frameCount+=1
 
@@ -104,15 +112,21 @@ class KickAI(object):
         return self.inputKey
         
     def processing(self):
+
         # Just compute the input for the current frame
         if self.frameData.getEmptyFlag() or self.frameData.getRemainingFramesNumber() <= 0:
-                self.isGameJustStarted = True
+                
+                self.isRunning=False
                 return
                 
         if self.cc.getSkillFlag():
                 self.inputKey = self.cc.getSkillKey()
+                
                 return
-            
+
+        
+        self.audio_data.append(self.currentAd)
+
         self.inputKey.empty()
         self.cc.skillCancel()
         # Just spam kick
@@ -124,8 +138,9 @@ class KickAI(object):
         self.myY.append(my.getCenterY())
         self.oppX.append(opp.getCenterX())
         self.oppY.append(opp.getCenterY())
-        self.audio_data.append(self.ad)
-        self.ad=[]
+        
+        #self.audio_data.append(self.ad)
+        #self.ad=[]
 
         
 
